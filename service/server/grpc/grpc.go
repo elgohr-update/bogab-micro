@@ -34,10 +34,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	"github.com/micro/micro/v3/internal/addr"
-	"github.com/micro/micro/v3/internal/backoff"
-	mgrpc "github.com/micro/micro/v3/internal/grpc"
-	mnet "github.com/micro/micro/v3/internal/net"
 	pberr "github.com/micro/micro/v3/proto/errors"
 	"github.com/micro/micro/v3/service/broker"
 	meta "github.com/micro/micro/v3/service/context/metadata"
@@ -45,6 +41,9 @@ import (
 	"github.com/micro/micro/v3/service/logger"
 	"github.com/micro/micro/v3/service/registry"
 	"github.com/micro/micro/v3/service/server"
+	"github.com/micro/micro/v3/util/addr"
+	"github.com/micro/micro/v3/util/backoff"
+	mnet "github.com/micro/micro/v3/util/net"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/netutil"
 
@@ -248,7 +247,7 @@ func (g *grpcServer) handler(srv interface{}, stream grpc.ServerStream) (err err
 		return status.Errorf(codes.Internal, "method does not exist in context")
 	}
 
-	serviceName, methodName, err := mgrpc.ServiceMethod(fullMethod)
+	serviceName, methodName, err := ServiceMethod(fullMethod)
 	if err != nil {
 		return status.New(codes.InvalidArgument, err.Error()).Err()
 	}
@@ -315,7 +314,7 @@ func (g *grpcServer) handler(srv interface{}, stream grpc.ServerStream) (err err
 
 		// create a client.Request
 		request := &rpcRequest{
-			service:     mgrpc.ServiceFromMethod(fullMethod),
+			service:     ServiceFromMethod(fullMethod),
 			contentType: ct,
 			method:      fmt.Sprintf("%s.%s", serviceName, methodName),
 			codec:       codec,

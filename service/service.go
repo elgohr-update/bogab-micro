@@ -7,9 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"syscall"
 
 	"github.com/micro/micro/v3/cmd"
-	signalutil "github.com/micro/micro/v3/internal/signal"
 	"github.com/micro/micro/v3/service/client"
 	mudebug "github.com/micro/micro/v3/service/debug"
 	debug "github.com/micro/micro/v3/service/debug/handler"
@@ -172,7 +172,7 @@ func (s *Service) Run() error {
 	// register the debug handler
 	s.Server().Handle(
 		s.Server().NewHandler(
-			debug.NewHandler(s.Client()),
+			debug.NewHandler(),
 			server.InternalHandler(true),
 		),
 	)
@@ -201,7 +201,7 @@ func (s *Service) Run() error {
 
 	ch := make(chan os.Signal, 1)
 	if s.opts.Signal {
-		signal.Notify(ch, signalutil.Shutdown()...)
+		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL)
 	}
 
 	// wait on kill signal
