@@ -1,4 +1,4 @@
-# Micro [![License](https://img.shields.io/badge/license-polyform:shield-blue)](https://polyformproject.org/licenses/shield/1.0.0/) [![Go Report Card](https://goreportcard.com/badge/micro/micro)](https://goreportcard.com/report/github.com/micro/micro) [![M3O](https://img.shields.io/badge/micro-cloud-red)](https://m3o.cloud/) 
+# Micro [![License](https://img.shields.io/badge/license-polyform:shield-blue)](https://polyformproject.org/licenses/shield/1.0.0/) [![Go Report Card](https://goreportcard.com/badge/micro/micro)](https://goreportcard.com/report/github.com/micro/micro) [![M3O](https://img.shields.io/badge/micro-cloud-orange)](https://m3o.cloud/) 
 
 Micro is a distributed OS built for the Cloud.
 
@@ -29,6 +29,6 @@ See the [docs](https://micro.mu) for detailed information on the architecture, i
 
 See [LICENSE](LICENSE) which makes use of [Polyform Shield](https://polyformproject.org/licenses/shield/1.0.0/).
 
-## Note
+## Notes
 
 This is not an open source project and there is no support of its use to anyone.

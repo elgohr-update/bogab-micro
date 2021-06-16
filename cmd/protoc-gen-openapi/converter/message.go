@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/micro/micro/v3/service/logger"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 const (
@@ -161,8 +162,30 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 		return nil, fmt.Errorf("unrecognized field type: %s", desc.GetType().String())
 	}
 
+	isList := false
+	var field *protogen.Field
+	if c.plug != nil && len(c.plug.Files) > 0 {
+		for _, file := range c.plug.Files {
+			for _, message := range file.Messages {
+				for _, f := range message.Fields {
+					parts := strings.Split(string(f.GoIdent.GoName), "_")
+					messageName := parts[0]
+
+					if messageName != *msg.Name {
+						continue
+					}
+					fieldName := parts[1]
+					if strings.ToLower(fieldName) == *desc.Name {
+						isList = f.Desc.IsList()
+						field = f
+					}
+				}
+			}
+		}
+
+	}
 	// Recurse array of primitive types:
-	if desc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED && componentSchema.Type != openAPITypeObject {
+	if isList && componentSchema.Type != openAPITypeObject {
 		componentSchema.Items = &openapi3.SchemaRef{
 			Value: &openapi3.Schema{
 				Type: componentSchema.Type,
@@ -188,21 +211,23 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 
 		// Maps, arrays, and objects are structured in different ways:
 		switch {
+		case field != nil && field.Desc.Message().FullName() == "google.protobuf.Struct":
+			componentSchema.Type = openAPITypeObject
 		// Arrays:
-		case desc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED:
+		case isList:
 			componentSchema.Items = &openapi3.SchemaRef{
 				Value: &openapi3.Schema{
 					Type:       openAPITypeObject,
 					Properties: recursedComponentSchema.Properties,
 				},
 			}
+
 			componentSchema.Type = openAPITypeArray
 		// Maps:
 		case recordType.Options.GetMapEntry():
 			logger.Tracef("Found a map (%s.%s)", *msg.Name, recordType.GetName())
 			componentSchema.Type = openAPITypeObject
-			componentSchema.AdditionalProperties = openapi3.NewSchemaRef("", recursedComponentSchema)
-
+			//componentSchema.AdditionalProperties = openapi3.NewSchemaRef("", recursedComponentSchema)
 		// Objects:
 		default:
 			componentSchema.Properties = recursedComponentSchema.Properties
